@@ -1,0 +1,30 @@
+service: nest-serverless-lambda-demo
+
+plugins:
+ - 'serverless-plugin-typescript'
+ - serverless-plugin-optimize
+ - serverless-offline
+#  - serverless-plugin-warmup
+
+# custom:
+# # Enable warmup on all functions (only for production and staging)
+#   warmup:
+#       - production
+#       - staging
+
+provider:
+ name: aws
+ runtime: nodejs12.x
+
+functions:
+ main: # The name of the lambda function
+   # The module 'handler' is exported in the file 'src/lambda'
+   handler: src/lambda.handler
+   events:
+     - http:
+         method: any
+         path: /{any+}
+
+custom:
+  optimize:
+    external: ['swagger-ui-dist']
