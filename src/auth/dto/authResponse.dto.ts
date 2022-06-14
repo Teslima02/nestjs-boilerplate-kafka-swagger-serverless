@@ -9,27 +9,17 @@ import {
   MinLength,
 } from 'class-validator';
 
-export class CurrentUserResponseDto {
-  @IsUUID()
-  _id: string;
+export class CreateNewUserResponseDto {
+  _id?: string;
 
-  @IsString()
   @IsEmail()
   email?: string;
-}
-
-export class CreateNewUserResponseDto {
-  @IsUUID()
-  id: string;
-
-  @IsEmail()
-  email: string;
 
   @IsDate()
-  emailConfirmationOtpExpiringTime: Date;
+  emailConfirmationOtpExpiringTime?: Date;
 
   @IsString()
-  coreProcessStatus: string;
+  status: string;
 }
 
 export class LoginOTPResponseDto {

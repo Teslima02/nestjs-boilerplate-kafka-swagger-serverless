@@ -9,7 +9,7 @@ import { ExpressAdapter } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 
 import express from 'express';
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 // NOTE: If you get ERR_CONTENT_DECODING_FAILED in your browser, this is likely
@@ -40,6 +40,7 @@ async function bootstrapServer(): Promise<Server> {
     );
     nestApp.use(eventContext());
     setupSwagger(nestApp);
+    nestApp.useGlobalPipes(new ValidationPipe());
     await nestApp.init();
     cachedServer = createServer(expressApp, undefined, binaryMimeTypes);
   }

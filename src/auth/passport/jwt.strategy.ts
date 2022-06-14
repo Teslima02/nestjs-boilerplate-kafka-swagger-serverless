@@ -2,17 +2,15 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
+import { UserService } from '../../user/user.service';
 import { configConstant } from '../../common/constants/config.constant';
 import { ConfigService } from '@nestjs/config';
-import { CurrentUserResponseDto } from '../dto/authResponse.dto';
-import { User, UserDocument } from '../../schemas/user.schema';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { CurrentUserResponseDto } from '../../user/dto/user.dto';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private readonly userService: UserService,
     readonly configService: ConfigService,
   ) {
     super({
@@ -23,7 +21,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: JwtPayload): Promise<CurrentUserResponseDto> {
-    const user = await this.userModel.findById(payload.id);
+    const user = await this.userService.me(payload.id);
     if (!user) {
       throw new UnauthorizedException();
     }

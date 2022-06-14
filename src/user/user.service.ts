@@ -1,12 +1,13 @@
 import {
   BadRequestException,
+  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { nanoid } from 'nanoid';
 import { CreateNewUserResponseDto } from '../auth/dto/authResponse.dto';
 import { generateOTP, OTPExpireTime } from '../common/helpers/global';
-import { UserDocument, User } from '../schemas/user.schema';
+import { UserDocument, User, Status } from '../schemas/user.schema';
 import { CREATE_USER_WALLET } from '../kafka/constant';
 import { KafkaPayload } from '../kafka/kafka.message';
 import { KafkaService } from '../kafka/kafka.service';
@@ -23,6 +24,9 @@ import {
 import { OtpDto } from './dto/user.dto';
 import { EmailService } from './email.service';
 import { TokenService } from './token.service';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { ResponseError, ResponseSuccess } from '../common/helpers/response.dto';
 
 @Injectable()
 export class UserService {
@@ -30,56 +34,54 @@ export class UserService {
     private readonly emailService: EmailService,
     private readonly tokenService: TokenService,
     private readonly kafkaService: KafkaService,
+    @InjectModel(User.name) private UserModel: Model<UserDocument>,
   ) {}
 
-  async createNewUser(createNewUser: CreateNewUserDto): Promise<any> {
+  async createNewUser(
+    createNewUser: CreateNewUserDto,
+  ): Promise<CreateNewUserResponseDto> {
     const { email, password } = createNewUser;
-    // const existingUser = await this.checkByEmail(createNewUser.email);
-    // if (!existingUser) {
-    // throw new BadRequestException(
-    //   RckgAppResponse.BadRequest([], 'Invalid email or password'),
-    // );
-    // }
-    // const { otp, exp } = this.generateOTPValue();
-    const user = new User();
-    // user.email = email;
-    // user.password = await this.tokenService.hashPassword(password);
-    // user.emailConfirmationOtp = otp;
-    // user.emailConfirmationOtpExpiringTime = exp;
-    // user.coreProcessStatus = CoreProcessStatus.PENDING;
-    // const createdUser = await this.userRepository.save(user);
+    const existingUser = await this.checkByEmail(createNewUser.email);
+    if (!existingUser) {
+      throw new ResponseError('User already exist', HttpStatus.BAD_REQUEST);
+    }
+    const { otp, exp } = this.generateOTPValue();
+    const user = await this.UserModel.create({
+      email: email,
+      password: await this.tokenService.hashPassword(password),
+      emailConfirmationOtp: otp,
+      emailConfirmationOtpExpiringTime: exp,
+      status: Status.PENDING,
+    });
+    const userResult = await user.save();
 
-    // if (createdUser) {
-    //   await this.emailService.emailServiceToSendOTP(
-    //     createdUser.email,
-    //     createdUser.emailConfirmationOtp,
-    //   );
-    //   // core service status is success
-    //   createdUser.coreProcessStatus = CoreProcessStatus.SUCCESS;
-    //   await this.userRepository.save(createdUser);
-    //   const getUser = await this.userRepository.registrationResponse(
-    //     createdUser.id,
-    //   );
-    //   // this.coreClient.emit(CORE_SERVICE_CREATE_WALLET, createNewUser);
-    //   return RckgAppResponse.Ok(getUser, 'User account created successfully');
-    // }
+    if (userResult) {
+      userResult.status = Status.SUCCESS;
+      userResult.save();
+
+      return new ResponseSuccess(
+        'User account created successfully',
+        HttpStatus.CREATED,
+        userResult,
+      );
+    }
   }
 
-  // private generateOTPValue(): OtpDto {
-  //   return { otp: generateOTP().otp, exp: generateOTP().exp };
-  // }
+  private generateOTPValue(): OtpDto {
+    return { otp: generateOTP().otp, exp: generateOTP().exp };
+  }
 
   // async findUserByEmailWithCredentials(email: string): Promise<User> {
   //   return await this.userRepository.findUserByEmailWithCredentials(email);
   // }
 
-  // async checkByEmail(email: string): Promise<boolean> {
-  //   const user = await this.userRepository.findUserByEmail(email);
-  //   if (!user) {
-  //     return true;
-  //   }
-  //   return false;
-  // }
+  async checkByEmail(email: string): Promise<UserDocument | any> {
+    const user = await this.UserModel.findOne({ email: email });
+    if (user) {
+      return user;
+    }
+    return false;
+  }
 
   // async resendOtp(email: string): Promise<OtpResponseDto> {
   //   const findUser = await this.userRepository.findUserByEmail(email);
@@ -190,15 +192,18 @@ export class UserService {
   //   throw new NotFoundException(RckgAppResponse.NotFoundRequest('OTP expired'));
   // }
 
-  // async me(userId: string): Promise<CurrentUserResponseDto> {
-  //   const findUser = await this.userRepository.currentUserResponse(userId);
-  //   if (!findUser) {
-  //     throw new NotFoundException(
-  //       RckgAppResponse.NotFoundRequest(`User with this ${userId} not found`),
-  //     );
-  //   }
-  //   return findUser;
-  // }
+  async me(userId: string): Promise<CurrentUserResponseDto> {
+    const findUser = await this.UserModel.findById(userId);
+    if (!findUser) {
+      throw new NotFoundException(
+        new ResponseError(
+          `User with this ${userId} not found`,
+          HttpStatus.NOT_FOUND,
+        ),
+      );
+    }
+    return findUser;
+  }
 
   // async updateUserProfile(
   //   userId: string,

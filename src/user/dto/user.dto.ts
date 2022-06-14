@@ -81,7 +81,7 @@ export class OtpResponseDto {
 
 export class UserResponseDto {
   @IsUUID()
-  id: string;
+  _id: string;
 
   @IsString()
   @IsEmail()
@@ -116,7 +116,7 @@ export class UserResponseWithCredentialsDto {
 
 export class CurrentUserResponseDto {
   @IsUUID()
-  id: string;
+  _id: string;
 
   @IsString()
   @IsEmail()
