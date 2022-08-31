@@ -64,7 +64,7 @@ export class OtpVerificationDto {
 
 export class OtpResponseDto {
   @IsNotEmpty()
-  id: string;
+  _id: string;
 
   @IsNotEmpty()
   @IsString()
@@ -146,25 +146,24 @@ export class ResetPasswordDto {
 }
 
 export class UserBasicDetailsDto {
-  @IsUUID()
-  id: string;
+  _id: string;
 
   @IsString()
   @IsEmail()
   email: string;
 
   @IsString()
-  phone?: string;
+  firstName?: string;
 
-  @IsBoolean()
-  emailAuthentication?: boolean;
+  @IsString()
+  middleName?: string;
 
-  @IsBoolean()
-  phoneAuthentication?: boolean;
+  @IsString()
+  lastName?: string;
+
+  @IsString()
+  status?: string;
 
   @IsBoolean()
   isEmailVerify?: boolean;
-
-  @IsBoolean()
-  isPhoneVerify?: boolean;
 }

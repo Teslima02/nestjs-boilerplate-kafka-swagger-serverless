@@ -1,6 +1,6 @@
-export const WALLET_CLIENT = 'wallet.client';
-export const WALLET_GROUP = 'wallet.group';
-export const CREATE_USER_WALLET = 'create.user.wallet';
+export const USER_CLIENT = 'user.client';
+export const USER_GROUP = 'user.group';
+export const CREATE_NEW_USER = 'create.user';
 
 export const BAXI_CLIENT = 'baxi.client';
 export const BAXI_GROUP = 'baxi.group';

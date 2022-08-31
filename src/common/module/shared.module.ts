@@ -2,7 +2,7 @@ import { ConfigModule } from '@nestjs/config';
 import { Module } from '@nestjs/common';
 import { KafkaModule } from '../../kafka/kafka.module';
 import { PassportModule } from '@nestjs/passport';
-import { WALLET_CLIENT, WALLET_GROUP } from '../../kafka/constant';
+import { USER_CLIENT, USER_GROUP } from '../../kafka/constant';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require('dotenv').config();
 
@@ -11,9 +11,9 @@ require('dotenv').config();
     PassportModule.register({ defaultStrategy: 'jwt' }),
     ConfigModule,
     KafkaModule.register({
-      clientId: WALLET_CLIENT,
+      clientId: USER_CLIENT,
       brokers: [process.env.KAFKABROKER],
-      groupId: WALLET_GROUP,
+      groupId: USER_GROUP,
     }),
   ],
   exports: [ConfigModule, KafkaModule, PassportModule],

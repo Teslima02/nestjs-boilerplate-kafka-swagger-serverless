@@ -10,9 +10,9 @@ export enum Status {
   FAIL = 'failure',
 }
 
-@Schema()
+@Schema({ timestamps: true })
 export class User {
-  @Prop()
+  @Prop({ type: String, required: true, unique: true })
   email: string;
 
   @Prop()
@@ -24,10 +24,10 @@ export class User {
   @Prop()
   lastName: string;
 
-  @Prop()
+  @Prop({ type: String, required: true })
   password: string;
 
-  @Prop()
+  @Prop({ type: String, required: true })
   username: string;
 
   @Prop({ default: 'pending' })
@@ -37,7 +37,10 @@ export class User {
   emailConfirmationOtp: string;
 
   @Prop()
-  emailConfirmationOtpExpiringTime: string;
+  emailConfirmationOtpExpiringTime: Date;
+
+  @Prop({ default: true })
+  emailOtpStatus: boolean;
 
   @Prop({ default: false })
   isEmailVerify: boolean;
